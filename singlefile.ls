@@ -33,10 +33,8 @@ run_npm = (script,cb)->
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm), (err)->
             if err
                 return cb err
-            child_process.exec 'yarn', (err, stdout, stderr)->
-                if err
-                    return cb err
-                return cb void
+            child_process.exec 'npm', {cwd:scriptdir}, (err, stdout, stderr)->
+                return cb err
         return
     else
         return cb 'no pkg'
@@ -46,10 +44,8 @@ run_yarn = (script,cb)->
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn), (err)->
             if err
                 return cb err
-            child_process.exec 'yarn', (err, stdout, stderr)->
-                if err
-                    return cb err
-                return cb void
+            child_process.exec 'yarn', {cwd:scriptdir}, (err, stdout, stderr)->
+                return cb err
         return
     else
         return cb 'no pkg'
@@ -59,8 +55,8 @@ run_grunt = (script,cb)->
         fs.writeFile path.join(scriptdir,'Gruntfile.js'), JSON.stringify(script.grunt), (err)->
             if err
                 return cb err
-            err, stdout, stderr <- child_process.exec 'grunt'
-            return cb err
+            child_process.exec 'grunt', (err, stdout, stderr)->
+                return cb err
         return
     else
         return cb 'no grunt'
