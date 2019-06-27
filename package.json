@@ -1,0 +1,9 @@
+{
+  "name": "singlefile",
+  "version": "0.1.0",
+  "description": "",
+  "main": "run.js",
+  "author": "Grady O'Connell",
+  "dependencies": {
+  }
+}

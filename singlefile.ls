@@ -30,6 +30,7 @@ script = require(jsname)
 
 run_npm = (script,cb)->
     if script.npm
+        # TODO: add singlefile dependencies to package?
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm), (err)->
             if err
                 return cb err
@@ -41,6 +42,7 @@ run_npm = (script,cb)->
 
 run_yarn = (script,cb)->
     if script.yarn
+        # TODO: add singlefile dependencies to package?
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn), (err)->
             if err
                 return cb err
@@ -99,6 +101,12 @@ try
     fs.mkdirSync path.join(scriptdir,'views')
 for template, content of script.views
     fs.writeFileSync path.join(scriptdir,'views',template), content
+
+# generate static/public dir
+try
+    fs.mkdirSync path.join(scriptdir,'public')
+for staticfile, content of script.public
+    fs.writeFileSync path.join(scriptdir,'public', staticfile), content
 
 app = express()
 app.set 'view engine', 'pug'
