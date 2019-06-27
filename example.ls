@@ -1,6 +1,6 @@
 #!/usr/bin/singlefile
 
-export cfg =
+export config =
     port: 3000
     base: 'default'
 

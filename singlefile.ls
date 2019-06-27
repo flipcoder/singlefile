@@ -73,7 +73,7 @@ err <- fs.writeFile 'public/client.js', client_code
 #    return cb void
 
 #app = void
-cfg = script.cfg
+cfg = script.config
 #if cfg
 #    if cfg.base=='default'
 #        express = require('express')
