@@ -24,7 +24,7 @@ sudo npm install -g livescript yarn
 Now, run your script or one of the examples by passing it to singlefile on the command line
 
 ```
-./singlefile.ls
+./singlefile.ls examples/basic-example.ls
 ```
 
 ## Features
