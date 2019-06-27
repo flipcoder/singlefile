@@ -15,16 +15,16 @@ temporary files generated when you run it.
 
 ## Features
 
-[x] Basic functionality (see basic example)
-[ ] Add browserify to grunt steps to get client-side require()
-[ ] Allow setting path for custom compilers somehow (must be // or # comment on first/second line)
-[ ] Selectable base for minimal boilerplate
-[ ] Expand default express base (SSL, etc.)
-[ ] Support other CSS alternatives
-[ ] React support and example
-[ ] Different view engines in addition to pug (could even make it detectable)
-[ ] Live reloading when script file is modified
-[ ] Generated folder paths inside of views and public (grunt nodemon)
-[ ] Show npm, yarn, and grunt output if -v (verbose)
-[ ] Native app bases
+- [x] Basic functionality (see basic example)
+- [ ] Add browserify to grunt steps to get client-side require()
+- [ ] Allow setting path for custom compilers somehow (must be // or # comment on first/second line)
+- [ ] Selectable base for minimal boilerplate
+- [ ] Expand default express base (SSL, etc.)
+- [ ] Support other CSS alternatives
+- [ ] React support and example
+- [ ] Different view engines in addition to pug (could even make it detectable)
+- [ ] Live reloading when script file is modified
+- [ ] Generated folder paths inside of views and public (grunt nodemon)
+- [ ] Show npm, yarn, and grunt output if -v (verbose)
+- [ ] Native app bases
 
