@@ -2,7 +2,7 @@ exports.config = {
   port: 3000,
   base: 'default'
 };
-exports.yarn = {
+exports.npm = {
   name: 'singlefile-example'
 };
 

@@ -16,7 +16,7 @@ langs =
 # TODO: check parameter for language
 # TODO: compile using langs
 
-fn = path.resolve(process.argv[2])
+fn = path.resolve(process.argv[3])
 pp = path.parse(fn)
 scriptdir = path.dirname(fn)
 ext = pp.ext
@@ -69,8 +69,8 @@ err <- run_grunt script
 
 # cut first and last line of client code (function wrapping)
 #client_code = app.client.toString().split('\n',1)[0]
-try
-    fs.mkdirSync 'public'
+#try
+#    fs.mkdirSync os.path.join(scriptdir,'public')
 client_code = script.client.toString()
 if client_code.lastIndexOf("\n")>0
     client_code = client_code.substring(client_code.indexOf('\n')+1)

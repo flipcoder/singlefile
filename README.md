@@ -13,6 +13,20 @@ I have plans to make this very flexible, such as having it work with different l
 Scripts support a shebang line, so you'll be able to simply execute the file and have all the necessary
 temporary files generated when you run it.
 
+# Usage
+
+First, you need livescipt installed.  Either those for your system or get it here:
+
+```
+sudo npm install -g livescript yarn
+```
+
+Now, run your script or one of the examples by passing it to singlefile on the command line
+
+```
+./singlefile.ls
+```
+
 ## Features
 
 - [x] Basic functionality (see basic example)

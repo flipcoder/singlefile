@@ -4,7 +4,7 @@ export config =
     port: 3000
     base: 'default'
 
-export yarn =
+export npm =
     name: 'singlefile-example'
 
 export views =
