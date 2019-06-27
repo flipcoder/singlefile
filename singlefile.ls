@@ -1,25 +1,39 @@
 #!/usr/bin/lsc
 
-exec = require('child_process').exec
+child_process = require('child_process')
 fs = require('fs')
 async = require('async')
+path = require('path')
+
+cwd = process.cwd()
 
 langs =
-    js: 'node' # javascript
-    coffee: 'coffee' # coffeescript
-    ls: 'lsc' # livescript
+    #js: 'node' # javascript
+    coffee: 'coffee -c' # coffeescript
+    ls: 'lsc -c' # livescript
 
 # TODO: include arg file
 # TODO: check parameter for language
 # TODO: compile using langs
-script = require('./' + process.argv[2])
+
+fn = path.resolve(process.argv[2])
+pp = path.parse(fn)
+scriptdir = path.dirname(fn)
+ext = pp.ext
+scriptname = pp.name
+
+jsname = path.join(scriptdir, scriptname)
+if ext in langs
+    child_process.execSync langs[ext] + fn + ' ' + jsname
+
+script = require(jsname)
 
 run_npm = (script,cb)->
     if script.npm
-        fs.writeFile 'package.json', JSON.stringify(script.npm), (err)->
+        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm), (err)->
             if err
                 return cb err
-            exec 'yarn', (err, stdout, stderr)->
+            child_process.exec 'yarn', (err, stdout, stderr)->
                 if err
                     return cb err
                 return cb void
@@ -29,10 +43,10 @@ run_npm = (script,cb)->
 
 run_yarn = (script,cb)->
     if script.yarn
-        fs.writeFile 'package.json', JSON.stringify(script.yarn), (err)->
+        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn), (err)->
             if err
                 return cb err
-            exec 'yarn', (err, stdout, stderr)->
+            child_process.exec 'yarn', (err, stdout, stderr)->
                 if err
                     return cb err
                 return cb void
@@ -42,10 +56,10 @@ run_yarn = (script,cb)->
 
 run_grunt = (script,cb)->
     if script.grunt
-        fs.writeFile 'Gruntfile.js', JSON.stringify(script.grunt), (err)->
+        fs.writeFile path.join(scriptdir,'Gruntfile.js'), JSON.stringify(script.grunt), (err)->
             if err
                 return cb err
-            err, stdout, stderr <- exec 'grunt'
+            err, stdout, stderr <- child_process.exec 'grunt'
             return cb err
         return
     else
@@ -86,13 +100,13 @@ http = require('http')
 
 # generate views/templates dir
 try
-    fs.mkdirSync 'views'
+    fs.mkdirSync path.join(scriptdir,'views')
 for template, content of script.views
-    fs.writeFileSync 'views/'+template, content
+    fs.writeFileSync path.join(scriptdir,'views',template), content
 
 app = express()
 app.set 'view engine', 'pug'
-app.set 'views', __dirname + '/views/'
+app.set 'views', scriptdir + '/views/'
 compile = (str, path) ->
     return stylus(str)
         .set('filename', path)
