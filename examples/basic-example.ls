@@ -9,6 +9,7 @@ export npm =
     dependencies:
         express: '*'
         pug: '*'
+        stylus: '*'
 
 export views =
     'index.pug': '''

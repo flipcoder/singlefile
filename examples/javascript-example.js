@@ -3,7 +3,11 @@ exports.config = {
   base: 'default'
 };
 exports.npm = {
-  name: 'singlefile-example'
+  name: 'singlefile-example',
+  dependencies:
+    express: "*",
+    pug: "*",
+    stylus: "*"
 };
 
 exports.views = { 'index.pug':`

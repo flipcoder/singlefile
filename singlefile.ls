@@ -14,10 +14,12 @@ interpreters =
 
 if process.env.SINGLEFILE # launching wrapper
     # include interpreter since we're generating singlefile.js and we need script require()s
+
     interpreter = void
     if process.env.SINGELFILE != 'js'
         interpreter = require(interpreters[process.env.SINGLEFILE])
     fn = path.resolve(argv[2])
+    scriptdir = path.dirname(fn)
     script = require(fn)
     cfg = script.config
 
@@ -28,7 +30,7 @@ if process.env.SINGLEFILE # launching wrapper
 
     app = express()
     app.set 'view engine', 'pug'
-    app.set 'views', scriptdir + '/views/'
+    app.set 'views', __dirname + '/views/'
     compile = (str, p) ->
         return stylus(str)
             .set('filename', p)
@@ -181,8 +183,7 @@ child_process.execSync 'lsc -c ' + argv[2]
 repchar = (s, idx, r)-> s.substr(0, idx) + r + s.substr(idx + r.length)
 singlefilejs = repchar(argv[2],argv[2].length-2,'j')
 singlefilejs_path = path
-#console.log singlefilejs, path.join(scriptdir,singlefilejs)
-err <- fs.rename singlefilejs, path.join(scriptdir,singlefilejs)
+err <- fs.rename singlefilejs, path.join(scriptdir,'wrapper.js')
 
 p = []
 p = Object.assign process.argv.slice(0)
@@ -192,7 +193,7 @@ p = Object.assign process.argv.slice(0)
 
 # singlefile.ls -> singlefile.js
 #p[p.length-2] = repchar(p[p.length-2], p[p.length-2].length-2, 'j')
-p[p.length-2] = path.join(scriptdir,'singlefile.js')
+p[p.length-2] = path.join(scriptdir,'wrapper.js')
 #p[p.length-1] = JSON.stringify(p[p.length-1])
 # remove lsc
 p.splice(1,1)
