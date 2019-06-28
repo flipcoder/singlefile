@@ -6,10 +6,6 @@ export config =
 
 export npm =
     name: 'singlefile-example'
-    dependencies:
-        express: '*'
-        pug: '*'
-        stylus: '*'
 
 export views =
     'index.pug': '''

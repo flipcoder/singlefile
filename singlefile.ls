@@ -86,9 +86,23 @@ if ext in Object.keys(compilers)
 #console.log fn
 script = require(fn)
 
+# if they're missing, inject singlefile wrapper dependencies into script's package.json
+inject_libs = (pkg)->
+    libs = [ 'express', 'pug', 'stylus' ]
+    if not ('dependencies' in Object.keys(pkg))
+        pkg.dependencies = {}
+    for lib in libs
+        if not (lib in Object.keys(pkg.dependencies))
+            pkg.dependencies[lib] = '*'
+    return pkg
+
 run_npm = (script,cb)->
+    # create if it doesn't exist
+    if not script.npm and not script.yarn
+        script.npm = {}
     if script.npm
-        # TODO: add singlefile dependencies to package?
+        inject_libs(script.npm)
+
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm), (err,a)->
             if err
                 console.log err
@@ -103,7 +117,8 @@ run_npm = (script,cb)->
 
 run_yarn = (script,cb)->
     if script.yarn
-        # TODO: add singlefile dependencies to package?
+        inject_libs(script.yarn)
+
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn), (err)->
             if err
                 return cb err
@@ -114,7 +129,9 @@ run_yarn = (script,cb)->
         return cb 'no pkg'
 
 run_grunt = (script,cb)->
+    # TODO: inject browserify
     if script.grunt
+
         fs.writeFile path.join(scriptdir,'Gruntfile.js'), JSON.stringify(script.grunt), (err)->
             if err
                 return cb err
