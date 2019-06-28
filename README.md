@@ -15,10 +15,10 @@ temporary files generated when you run it.
 
 # Usage
 
-To run the examples, you need livescipt and yarn installed.  Either those for your system or get it like this:
+To run the examples, you need livescipt installed.  Either those for your system or get it like this:
 
 ```
-sudo npm install -g livescript yarn
+sudo npm install -g livescript
 ```
 
 Now, run your script or one of the examples by passing it to singlefile on the command line
