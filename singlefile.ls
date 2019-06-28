@@ -27,8 +27,13 @@ if process.env.SINGLEFILE # launching wrapper
     stylus = require('stylus')
     pug = require('pug')
     http = require('http')
+    bodyParser = require('body-parser')
 
     app = express()
+    # TODO: method override?
+    app.use(bodyParser.urlencoded({ extended: true }))
+    app.use(bodyParser.json())
+    # TODO: session
     app.set 'view engine', 'pug'
     app.set 'views', __dirname + '/views/'
     compile = (str, p) ->
@@ -88,7 +93,7 @@ script = require(fn)
 
 # if they're missing, inject singlefile wrapper dependencies into script's package.json
 inject_libs = (pkg)->
-    libs = [ 'express', 'pug', 'stylus' ]
+    libs = [ 'express', 'pug', 'stylus', 'grunt-browserify', 'body-parser' ]
     if not ('dependencies' in Object.keys(pkg))
         pkg.dependencies = {}
     for lib in libs
@@ -103,7 +108,7 @@ run_npm = (script,cb)->
     if script.npm
         inject_libs(script.npm)
 
-        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm), (err,a)->
+        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm,null,4), (err,a)->
             if err
                 console.log err
                 return cb err
@@ -119,7 +124,7 @@ run_yarn = (script,cb)->
     if script.yarn
         inject_libs(script.yarn)
 
-        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn), (err)->
+        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn,null,4), (err)->
             if err
                 return cb err
             child_process.exec 'yarn', {cwd:scriptdir}, (err, stdout, stderr)->
@@ -129,10 +134,31 @@ run_yarn = (script,cb)->
         return cb 'no pkg'
 
 run_grunt = (script,cb)->
-    # TODO: inject browserify
+    # TODO: inject browserify for client code
+    if not script.grunt
+        script.grunt = {}
+        script.grunt.config =
+            pkg: script.npm || script.yarn
+            browserify:
+                client:
+                    src: ['client-pre.js'],
+                    dest: 'public/client.js'
+        script.grunt.load = ['grunt-browserify']
+        script.grunt.register = ['browserify']
+
     if script.grunt
 
-        fs.writeFile path.join(scriptdir,'Gruntfile.js'), JSON.stringify(script.grunt), (err)->
+        g = "module.exports = function(grunt) { grunt.initConfig(\n"
+        g += JSON.stringify(script.grunt.config,null,4) + '\n'
+        g += ');\n'
+        for load in script.grunt.load
+            g += '\ngrunt.loadNpmTasks(\'' + load + '\');'
+        g += '\ngrunt.registerTask(\'default\', ['
+        for register in script.grunt.register
+            g += '\''+register+'\','
+        g += ']);\n}'
+
+        fs.writeFile path.join(scriptdir,'Gruntfile.js'), g, (err)->
             if err
                 return cb err
             child_process.exec 'grunt', (err, stdout, stderr)->
@@ -156,7 +182,9 @@ if client_code.lastIndexOf("\n")>0
         client_code = client_code.substring(0, client_code.lastIndexOf('\n'))
     # TODO: cut livescript return statement from last line
     # TODO: cut 1 level of indentation
-err <- fs.writeFile path.join(scriptname,'public/client.js'), client_code
+err <- fs.writeFile path.join(scriptdir,'client-pre.js'), client_code
+if err
+    console.log 'could not write client.js file'
 
 #err, template <- async.eachLimit Object.keys(template), 1, (template,cb)->
 #    console.log template
@@ -176,7 +204,7 @@ for template, content of script.views
 
 # generate static/public dir
 try
-    fs.mkdirSync path.join(scriptname,'public')
+    fs.mkdirSync path.join(scriptdir,'public')
 for staticfile, content of script.public
     fs.writeFileSync path.join(scriptdir,'public', staticfile), content
 
