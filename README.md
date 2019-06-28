@@ -30,7 +30,7 @@ Now, run your script or one of the examples by passing it to singlefile on the c
 ## Features
 
 - [x] Basic functionality (see basic example)
-- [ ] Add browserify to grunt steps to get client-side require()
+- [x] Add browserify to grunt steps to get client-side require()
 - [ ] Allow setting path for custom compilers somehow (must be // or # comment on first/second line)
 - [ ] Selectable base for minimal boilerplate
 - [ ] Expand default express base (SSL, etc.)
