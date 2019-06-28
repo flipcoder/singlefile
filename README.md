@@ -1,6 +1,6 @@
 # singlefile
 
-This project is working, but it is unfinished.
+This project is somewhat working, but it is unfinished.
 
 This script allows you to create single-file web apps, where you create and run your app 
 with client, server, and template code embedded in just one file.  This is great for small
@@ -15,7 +15,7 @@ temporary files generated when you run it.
 
 # Usage
 
-First, you need livescipt installed.  Either those for your system or get it here:
+To run the examples, you need livescipt and yarn installed.  Either those for your system or get it like this:
 
 ```
 sudo npm install -g livescript yarn
