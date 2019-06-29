@@ -15,16 +15,16 @@ temporary files generated when you run it.
 
 # Usage
 
-To run the examples, you need livescipt installed.  Either those for your system or get it like this:
+To run the examples, install the package globally:
 
 ```
-sudo npm install -g livescript
+sudo npm install -g
 ```
 
-Now, run your script or one of the examples by passing it to singlefile on the command line
+Then run one of the examples:
 
 ```
-./singlefile.ls examples/basic-example.ls
+./examples/basic-example.ls
 ```
 
 ## Features
