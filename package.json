@@ -11,6 +11,9 @@
     "type": "git",
     "url": "git://github.com/flipcoder/singlefile.git"
   },
+  "files": [
+    "singlefile.ls"
+  ],
   "bugs": "https://github.com/flipcoder/singlefile/issues",
   "dependencies": {
     "livescript": "*"
