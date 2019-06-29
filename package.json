@@ -1,9 +1,17 @@
 {
   "name": "singlefile",
-  "version": "0.1.0",
-  "description": "",
-  "main": "run.js",
+  "version": "0.0.1",
+  "description": "Write web apps contained in a single file",
   "author": "Grady O'Connell",
+  "license": "MIT",
+  "bin": {
+    "singlefile": "./singlefile.ls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/flipcoder/singlefile.git"
+  },
+  "bugs": "https://github.com/flipcoder/singlefile/issues",
   "dependencies": {
     "livescript": "*"
   }

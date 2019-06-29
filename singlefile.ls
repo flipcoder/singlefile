@@ -224,11 +224,18 @@ env =
 
 # compile self and copy in
 #console.log 'lsc -c ' + process.argv[2]
-child_process.execSync 'lsc -c ' + argv[2]
-repchar = (s, idx, r)-> s.substr(0, idx) + r + s.substr(idx + r.length)
-singlefilejs = repchar(argv[2],argv[2].length-2,'j')
-singlefilejs_path = path
-err <- fs.rename singlefilejs, path.join(scriptdir,'wrapper.js')
+
+wrapperls = path.join(scriptdir,'wrapper.ls')
+exists <- fs.exists wrapperls
+if exists
+    console.log 'cannot build, wrapper.ls would be replaced'
+    processs.exit(1)
+err <- fs.copyFile argv[2], path.join(scriptdir,'wrapper.ls')
+child_process.execSync 'lsc -c ' + path.join(scriptdir,'wrapper.ls')
+err <- fs.unlink path.join(scriptdir,'wrapper.ls')
+#repchar = (s, idx, r)-> s.substr(0, idx) + r + s.substr(idx + r.length)
+#singlefilejs = repchar(argv[2],argv[2].length-2,'j')
+#singlefilejs_path = path
 
 p = []
 p = Object.assign process.argv.slice(0)
