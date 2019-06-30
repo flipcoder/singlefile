@@ -7,6 +7,9 @@ fs = require('fs')
 #async = require('async')
 path = require('path')
 
+plugin = (script,name)->
+    return true # TEMP
+
 interpreters =
     #js: 'node' # javascript
     coffee: 'coffeescript'
@@ -23,34 +26,45 @@ if process.env.SINGLEFILE # launching wrapper
     script = require(fn)
     cfg = script.config
 
-    express = require('express')
-    stylus = require('stylus')
-    pug = require('pug')
-    http = require('http')
-    bodyParser = require('body-parser')
+    if cfg.base == 'default' or cfg.base == 'express'
+        express = require('express')
+        stylus = require('stylus')
+        pug = require('pug')
+        http = require('http')
+        bodyParser = require('body-parser')
 
-    app = express()
-    # TODO: method override?
-    app.use(bodyParser.urlencoded({ extended: true }))
-    app.use(bodyParser.json())
-    # TODO: session
-    app.set 'view engine', 'pug'
-    app.set 'views', __dirname + '/views/'
-    compile = (str, p) ->
-        return stylus(str)
-            .set('filename', p)
-    app.use stylus.middleware do
-        src: __dirname + '/views/'
-        dest: __dirname + '/public/'
-        serve: true
-        compress: true
-        warn: true
-        compile: compile
-    app.use(express.static('public'))
-    app.run = (cb)->
-        httpserver = http.createServer app
-        app.listen cfg.port || 3000, ->
-            cb void
+        app = express()
+
+        # TODO: method override?
+        app.use(bodyParser.urlencoded({ extended: true }))
+        app.use(bodyParser.json())
+
+        # TODO: session
+
+        if plugin(script,'pug')
+            app.set 'view engine', 'pug'
+
+        app.set 'views', __dirname + '/views/'
+
+        if plugin(script,'stylus')
+            compile = (str, p) ->
+                return stylus(str)
+                    .set('filename', p)
+            app.use stylus.middleware do
+                src: __dirname + '/views/'
+                dest: __dirname + '/public/'
+                serve: true
+                compress: true
+                warn: true
+                compile: compile
+
+        app.use(express.static('public'))
+        app.run = (cb)->
+            httpserver = http.createServer app
+            app.listen cfg.port || 3000, ->
+                cb void
+    else
+        app = {}
     return script.server(app)
 
 child_process = require('child_process')
@@ -94,6 +108,9 @@ script = require(fn)
 # if they're missing, inject singlefile wrapper dependencies into script's package.json
 inject_libs = (pkg)->
     libs = [ 'express', 'pug', 'stylus', 'grunt-browserify', 'body-parser' ]
+    #if ext != 'js'
+    #    if ext in Object.keys(interpreters)
+    #        libs = [interpreters[ext]].concat(libs)
     if not ('dependencies' in Object.keys(pkg))
         pkg.dependencies = {}
     for lib in libs
@@ -110,15 +127,15 @@ run_npm = (script,cb)->
 
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm,null,4), (err,a)->
             if err
-                console.log err
+                console.log 'package.json (npm) failed'
                 return cb err
             child_process.exec 'npm install', {cwd:scriptdir}, (err, stdout, stderr)->
                 if err
-                    console.log err
+                    console.log 'npm install failed'
                 return cb err
         return
     else
-        return cb 'no pkg'
+        return cb void
 
 run_yarn = (script,cb)->
     if script.yarn
@@ -126,12 +143,15 @@ run_yarn = (script,cb)->
 
         fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn,null,4), (err)->
             if err
+                console.log 'package.json (yarn) failed'
                 return cb err
             child_process.exec 'yarn', {cwd:scriptdir}, (err, stdout, stderr)->
+                if err
+                    console.log 'yarn failed'
                 return cb err
         return
     else
-        return cb 'no pkg'
+        return cb void
 
 run_grunt = (script,cb)->
     # TODO: inject browserify for client code
@@ -160,16 +180,30 @@ run_grunt = (script,cb)->
 
         fs.writeFile path.join(scriptdir,'Gruntfile.js'), g, (err)->
             if err
+                console.log 'gruntfile.js write failed'
                 return cb err
             child_process.exec 'grunt', (err, stdout, stderr)->
+                if err
+                    console.log 'grunt failed'
                 return cb err
         return
     else
-        return cb 'no grunt'
+        return cb void
 
 err <- run_yarn script
+if err
+    console.log err
+    process.exit(1)
+
 err <- run_npm script
+if err
+    console.log err
+    process.exit(1)
+
 err <- run_grunt script
+if err
+    console.log err
+    process.exit(1)
 
 # cut first and last line of client code (function wrapping)
 #client_code = app.client.toString().split('\n',1)[0]

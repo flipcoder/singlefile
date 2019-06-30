@@ -8,20 +8,27 @@ export npm =
     name: 'singlefile-example'
     dependencies:
         livescript: '*'
+        react: '*'
+        'react-dom': '*'
+        'react-hyperscript': '*'
 
 export views =
     'index.pug': '''
         doctype html
         html(lang='en')
           head
-            script(src='client.js')
-            p test
           body
-            p Hello World!
+            div#root
+            script(src='client.js')
     '''
 
 export client = ->
-    console.log 'client'
+    h = require('react-hyperscript')
+    React = require('react')
+    ReactDOM = require('react-dom')
+    root = document.getElementById('root')
+    content = h 'div', {}, 'Hello World'
+    ReactDOM.render content, root
     return
 
 export server = (app)->
