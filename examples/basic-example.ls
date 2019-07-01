@@ -13,7 +13,6 @@ export views =
         html(lang='en')
           head
             script(src='client.js')
-            p test
           body
             p Hello World!
     '''
