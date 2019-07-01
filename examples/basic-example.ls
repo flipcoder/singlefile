@@ -6,8 +6,6 @@ export config =
 
 export npm =
     name: 'singlefile-example'
-    dependencies:
-        livescript: '*'
 
 export views =
     'index.pug': '''

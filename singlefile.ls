@@ -108,9 +108,9 @@ script = require(fn)
 # if they're missing, inject singlefile wrapper dependencies into script's package.json
 inject_libs = (pkg)->
     libs = [ 'express', 'pug', 'stylus', 'grunt-browserify', 'body-parser' ]
-    #if ext != 'js'
-    #    if ext in Object.keys(interpreters)
-    #        libs = [interpreters[ext]].concat(libs)
+    if ext != 'js'
+        if ext in Object.keys(interpreters)
+            libs = [interpreters[ext]].concat(libs)
     if not ('dependencies' in Object.keys(pkg))
         pkg.dependencies = {}
     for lib in libs
@@ -125,11 +125,15 @@ run_npm = (script,cb)->
     if script.npm
         inject_libs(script.npm)
 
-        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm,null,4), (err,a)->
+        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.npm,null,4), {'flag':'w'}, (err,a)->
             if err
                 console.log 'package.json (npm) failed'
                 return cb err
             child_process.exec 'npm install', {cwd:scriptdir}, (err, stdout, stderr)->
+                if stdout
+                    console.log stdout
+                if stderr
+                    console.log stderr
                 if err
                     console.log 'npm install failed'
                 return cb err
@@ -141,11 +145,15 @@ run_yarn = (script,cb)->
     if script.yarn
         inject_libs(script.yarn)
 
-        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn,null,4), (err)->
+        fs.writeFile path.join(scriptdir, 'package.json'), JSON.stringify(script.yarn,null,4), {'flag':'w'}, (err)->
             if err
                 console.log 'package.json (yarn) failed'
                 return cb err
             child_process.exec 'yarn', {cwd:scriptdir}, (err, stdout, stderr)->
+                if stdout
+                    console.log stdout
+                if stderr
+                    console.log stderr
                 if err
                     console.log 'yarn failed'
                 return cb err
@@ -178,11 +186,15 @@ run_grunt = (script,cb)->
             g += '\''+register+'\','
         g += ']);\n}'
 
-        fs.writeFile path.join(scriptdir,'Gruntfile.js'), g, (err)->
+        fs.writeFile path.join(scriptdir,'Gruntfile.js'), g, {'flag':'w'}, (err)->
             if err
                 console.log 'gruntfile.js write failed'
                 return cb err
             child_process.exec 'grunt', (err, stdout, stderr)->
+                if stdout
+                    console.log stdout
+                if stderr
+                    console.log stderr
                 if err
                     console.log 'grunt failed'
                 return cb err
@@ -216,7 +228,7 @@ if client_code.lastIndexOf("\n")>0
         client_code = client_code.substring(0, client_code.lastIndexOf('\n'))
     # TODO: cut livescript return statement from last line
     # TODO: cut 1 level of indentation
-err <- fs.writeFile path.join(scriptdir,'client-pre.js'), client_code
+err <- fs.writeFile path.join(scriptdir,'client-pre.js'), client_code, {'flag':'w'} # overwrite
 if err
     console.log 'could not write client.js file'
 
@@ -234,13 +246,13 @@ cfg = script.config
 try
     fs.mkdirSync path.join(scriptdir,'views')
 for template, content of script.views
-    fs.writeFileSync path.join(scriptdir,'views',template), content
+    fs.writeFileSync path.join(scriptdir,'views',template), content, {'flag':'w'}
 
 # generate static/public dir
 try
     fs.mkdirSync path.join(scriptdir,'public')
 for staticfile, content of script.public
-    fs.writeFileSync path.join(scriptdir,'public', staticfile), content
+    fs.writeFileSync path.join(scriptdir,'public', staticfile), content, {'flag':'w'}
 
 # TODO: instead of requiring, should:
 #   (if not in script dir) compile and copy singlefile.js to project and re-run from script dir using script's node_modules
