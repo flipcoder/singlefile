@@ -190,7 +190,7 @@ run_grunt = (script,cb)->
             if err
                 console.log 'gruntfile.js write failed'
                 return cb err
-            child_process.exec 'grunt', (err, stdout, stderr)->
+            child_process.exec 'grunt', {cwd:scriptdir} (err, stdout, stderr)->
                 if stdout
                     console.log stdout
                 if stderr
