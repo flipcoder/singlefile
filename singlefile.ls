@@ -292,7 +292,7 @@ for template, content of script.views
 # generate static/public dir
 try
     fs.mkdirSync path.join(scriptdir,'public')
-for staticfile, content of script.public
+for staticfile, content of script.pub
     fs.writeFileSync path.join(scriptdir,'public', staticfile), content, {'flag':'w'}
 
 # TODO: instead of requiring, should:
