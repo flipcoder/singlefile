@@ -90,7 +90,7 @@ and server function themselves.  This allows separation.
 
 Now that you know the anatomy of a singlefile app, run `./basic-example.ls` and open `localhost:3000` in your browser.
 
-You should see Hellow World and if you open the F12 developer console you'll see "client" which was printed by 
+You should see "Hello World" and if you open the F12 developer console you'll see "client" which was printed by 
 our client code.
 
 You can also run singlefile apps by running:
@@ -119,6 +119,5 @@ Feel free to let me know if you find this useful or have any questions.  I am op
 - [ ] Different view engines in addition to pug (could even make it detectable)
 - [ ] Live reloading when script file is modified
 - [ ] Generated folder paths inside of views and public (grunt nodemon)
-- [ ] Show npm, yarn, and grunt output if -v (verbose)
 - [ ] Native app bases
 
