@@ -19,7 +19,7 @@ if process.env.SINGLEFILE # launching wrapper
     # include interpreter since we're generating singlefile.js and we need script require()s
 
     interpreter = void
-    if process.env.SINGELFILE != 'js'
+    if process.env.SINGLEFILE != 'js'
         interpreter = require(interpreters[process.env.SINGLEFILE])
     fn = path.resolve(argv[2])
     scriptdir = path.dirname(fn)
@@ -169,7 +169,7 @@ run_grunt = (script,cb)->
             pkg: script.npm || script.yarn
             browserify:
                 client:
-                    src: ['client-pre.js'],
+                    src: ['client-pre-browserify.js'],
                     dest: 'public/client.js'
         script.grunt.load = ['grunt-browserify']
         script.grunt.register = ['browserify']
@@ -216,30 +216,47 @@ if err
 #client_code = app.client.toString().split('\n',1)[0]
 #try
 #    fs.mkdirSync os.path.join(scriptdir,'public')
-client_code = script.client.toString()
-if client_code.lastIndexOf("\n")>0
-    client_code = client_code.substring(client_code.indexOf('\n')+1)
+if script.client?
+    client_code = script.client.toString()
     if client_code.lastIndexOf("\n")>0
-        client_code = client_code.substring(0, client_code.lastIndexOf('\n'))
-    last_nl = client_code.lastIndexOf("\n")
-    if last_nl>0
+        client_code = client_code.substring(client_code.indexOf('\n')+1)
+        if client_code.lastIndexOf("\n")>0
+            client_code = client_code.substring(0, client_code.lastIndexOf('\n'))
+        last_nl = client_code.lastIndexOf("\n")
+        #if last_nl>=0
         # TODO: cut livescript return statement from last line
         return_line = client_code.substring(last_nl+1)
-        client_code = client_code.substring(0, last_nl)
-        console.log return_line
+        client_code = client_code.substring(0, Math.max(last_nl,0))
         if return_line.indexOf('return ') >= 0
             return_line = return_line.substring(return_line.indexOf('return ')+'return '.length)
         client_code = client_code + '\n' + return_line
-    # TODO: cut 1 level of indentation
+        # TODO: cut 1 level of indentation
+else
+    client_code = ''
 
-err <- fs.writeFile path.join(scriptdir,'client-pre.js'), client_code, {'flag':'w'} # overwrite
+err <- fs.writeFile path.join(scriptdir,'client-pre-babel.js'), client_code, {'flag':'w'} # overwrite
 if err
     console.log 'could not write client.js file'
+
+console.log path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
+    '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --outname ' + path.join(scriptdir,'client-pre-browserify.js')
+
+err,stdout,stderr <- child_process.exec path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
+    '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --out-file ' + path.join(scriptdir,'client-pre-browserify.js')
+
+console.log stdout
+console.log stderr
+if err
+    console.log err
+    process.exit(1)
 
 err <- run_grunt script
 if err
     console.log err
     process.exit(1)
+
+err <- fs.unlink path.join(scriptdir,'client-pre-browserify.js')
+err <- fs.unlink path.join(scriptdir,'client-pre-babel.js')
 
 #err, template <- async.eachLimit Object.keys(template), 1, (template,cb)->
 #    console.log template
@@ -289,6 +306,7 @@ err <- fs.copyFile argv[2], path.join(scriptdir,'wrapper.ls')
 child_process.execSync 'lsc -c ' + path.join(scriptdir,'wrapper.ls')
 err <- fs.unlink path.join(scriptdir,'wrapper.ls')
 #repchar = (s, idx, r)-> s.substr(0, idx) + r + s.substr(idx + r.length)
+#singlefile = argv[2]
 #singlefilejs = repchar(argv[2],argv[2].length-2,'j')
 #singlefilejs_path = path
 

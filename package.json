@@ -16,6 +16,8 @@
   ],
   "bugs": "https://github.com/flipcoder/singlefile/issues",
   "dependencies": {
-    "livescript": "*"
+    "livescript": "*",
+    "babel-cli": "*",
+    "grunt": "*"
   }
 }
