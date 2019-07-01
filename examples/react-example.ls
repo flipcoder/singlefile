@@ -7,7 +7,6 @@ export config =
 export npm =
     name: 'singlefile-example'
     dependencies:
-        livescript: '*'
         react: '*'
         'react-dom': '*'
         'react-hyperscript': '*'

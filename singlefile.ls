@@ -212,11 +212,6 @@ if err
     console.log err
     process.exit(1)
 
-err <- run_grunt script
-if err
-    console.log err
-    process.exit(1)
-
 # cut first and last line of client code (function wrapping)
 #client_code = app.client.toString().split('\n',1)[0]
 #try
@@ -231,6 +226,11 @@ if client_code.lastIndexOf("\n")>0
 err <- fs.writeFile path.join(scriptdir,'client-pre.js'), client_code, {'flag':'w'} # overwrite
 if err
     console.log 'could not write client.js file'
+
+err <- run_grunt script
+if err
+    console.log err
+    process.exit(1)
 
 #err, template <- async.eachLimit Object.keys(template), 1, (template,cb)->
 #    console.log template
