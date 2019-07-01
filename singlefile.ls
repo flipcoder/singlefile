@@ -190,7 +190,13 @@ run_grunt = (script,cb)->
             if err
                 console.log 'gruntfile.js write failed'
                 return cb err
-            child_process.exec 'grunt', {cwd:scriptdir} (err, stdout, stderr)->
+            
+            grunt_cmd = path.join(path.dirname(argv[2]),'node_modules','grunt','bin','grunt')
+            exists <- fs.exists grunt_cmd
+            if not exists
+                grunt_cmd = 'grunt'
+            
+            child_process.exec grunt_cmd, {cwd:scriptdir} (err, stdout, stderr)->
                 if stdout
                     console.log stdout
                 if stderr
@@ -238,14 +244,23 @@ err <- fs.writeFile path.join(scriptdir,'client-pre-babel.js'), client_code, {'f
 if err
     console.log 'could not write client.js file'
 
-console.log path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
-    '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --outname ' + path.join(scriptdir,'client-pre-browserify.js')
+#console.log path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
+#    '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --outname ' + path.join(scriptdir,'client-pre-browserify.js')
 
-err,stdout,stderr <- child_process.exec path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
-    '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --out-file ' + path.join(scriptdir,'client-pre-browserify.js')
 
-console.log stdout
-console.log stderr
+
+# local babel?
+exists <- fs.exists path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js')
+
+if exists
+    # use local babel
+    child_process.execSync path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
+        '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --out-file ' + path.join(scriptdir,'client-pre-browserify.js')
+else
+    # use global babel
+    child_process.execSync 'babel ' + '  ' + path.join(scriptdir,'client-pre-babel.js') +
+        ' --out-file ' + path.join(scriptdir,'client-pre-browserify.js')
+
 if err
     console.log err
     process.exit(1)
