@@ -85,8 +85,8 @@ boilerplate are automatically added, so you only need to add the dependencies yo
 
 Client-side require() of packages is also supported by using browserify invisibly in the background.
 
-Keep in mind any functions that your server and client use must be nested in or included from the client
-and server function themselves.  This allows separation.
+Keep in mind any functions that your client uses must be nested in or included from the client
+function itself.  This allows separation.
 
 Now that you know the anatomy of a singlefile app, run `./basic-example.ls` and open `localhost:3000` in your browser.
 
