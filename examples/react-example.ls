@@ -28,7 +28,6 @@ export client = ->
     root = document.getElementById('root')
     content = h 'div', {}, 'Hello World'
     ReactDOM.render content, root
-    return
 
 export server = (app)->
     app.get '/', (req,res) ->

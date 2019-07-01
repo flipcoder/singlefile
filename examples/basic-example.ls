@@ -19,7 +19,6 @@ export views =
 
 export client = ->
     console.log 'client'
-    return
 
 export server = (app)->
     app.get '/', (req,res) ->

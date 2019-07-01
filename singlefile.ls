@@ -221,8 +221,17 @@ if client_code.lastIndexOf("\n")>0
     client_code = client_code.substring(client_code.indexOf('\n')+1)
     if client_code.lastIndexOf("\n")>0
         client_code = client_code.substring(0, client_code.lastIndexOf('\n'))
-    # TODO: cut livescript return statement from last line
+    last_nl = client_code.lastIndexOf("\n")
+    if last_nl>0
+        # TODO: cut livescript return statement from last line
+        return_line = client_code.substring(last_nl+1)
+        client_code = client_code.substring(0, last_nl)
+        console.log return_line
+        if return_line.indexOf('return ') >= 0
+            return_line = return_line.substring(return_line.indexOf('return ')+'return '.length)
+        client_code = client_code + '\n' + return_line
     # TODO: cut 1 level of indentation
+
 err <- fs.writeFile path.join(scriptdir,'client-pre.js'), client_code, {'flag':'w'} # overwrite
 if err
     console.log 'could not write client.js file'
