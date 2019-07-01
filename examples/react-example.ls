@@ -5,29 +5,45 @@ export config =
     base: 'default'
 
 export npm =
-    name: 'singlefile-example'
+    name: 'singlefile-react-example'
     dependencies:
         react: '*'
         'react-dom': '*'
+        'create-react-class': '*'
         'react-hyperscript': '*'
+        'hyperscript-helpers': '*'
 
 export views =
     'index.pug': '''
         doctype html
         html(lang='en')
-          head
-          body
-            div#root
-            script(src='client.js')
+            head
+                link(rel='stylesheet', href='main.css')
+            body
+                div#root
+                script(src='client.js')
+    ''',
+    'main.styl': '''
+        body
+            background-color: blue
     '''
 
 export client = ->
     h = require('react-hyperscript')
     React = require('react')
+    createReactClass = require('create-react-class')
     ReactDOM = require('react-dom')
-    root = document.getElementById('root')
-    content = h 'div', {}, 'Hello World'
-    ReactDOM.render content, root
+    { div, button } = require('hyperscript-helpers')(h)
+
+    Hello = createReactClass do
+        getInitialState: ->
+            return { message: 'hello!' }
+        handleClick: ->
+            alert(this.state.message)
+        render: ->
+            return button({ onClick=this.handleClick }, 'Push')
+
+    ReactDOM.render React.createElement(Hello), document.getElementById('root')
 
 export server = (app)->
     app.get '/', (req,res) ->
