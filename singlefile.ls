@@ -8,7 +8,9 @@ fs = require('fs')
 path = require('path')
 
 plugin = (script,name)->
-    return true # TEMP
+    if script.config and script.config.plugins
+        return name in script.config.plugins
+    return true # no plugin list, return true on all defaults
 
 interpreters =
     #js: 'node' # javascript
@@ -28,8 +30,10 @@ if process.env.SINGLEFILE # launching wrapper
 
     if cfg.base == 'default' or cfg.base == 'express'
         express = require('express')
-        stylus = require('stylus')
-        pug = require('pug')
+        if plugin(script,'stylus')
+            stylus = require('stylus')
+        if plugin(script,'pug')
+            pug = require('pug')
         http = require('http')
         bodyParser = require('body-parser')
 
@@ -62,7 +66,7 @@ if process.env.SINGLEFILE # launching wrapper
         app.run = (cb)->
             httpserver = http.createServer app
             app.listen cfg.port || 3000, ->
-                cb void
+                cb void, httpserver
     else
         app = {}
     return script.server(app)
