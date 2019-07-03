@@ -7,15 +7,33 @@ fs = require('fs')
 #async = require('async')
 path = require('path')
 
-plugin = (script,name)->
-    if script.config and script.config.plugins
-        return name in script.config.plugins
-    return true # no plugin list, return true on all defaults
+plugin = (script, name)->
+    if script.config
+        if script.config.stack
+            return name in script.config.stack
+        else
+            if name in ['pug','stylus'] # defaults
+                return true
+    return false
 
 interpreters =
     #js: 'node' # javascript
     coffee: 'coffeescript'
     ls: 'livescript'
+
+# client side libs to inject into script's generated package.json
+client_libs = [
+    'express',
+    'grunt-browserify',
+    'body-parser',
+    'method-override',
+]
+
+plugin_libs = [
+    'pug': ['pug'],
+    'stylus': ['stylus', 'nib'],
+    'session': ['express-session']
+]
 
 if process.env.SINGLEFILE # launching wrapper
     # include interpreter since we're generating singlefile.js and we need script require()s
@@ -27,23 +45,40 @@ if process.env.SINGLEFILE # launching wrapper
     scriptdir = path.dirname(fn)
     script = require(fn)
     cfg = script.config
+    if cfg.stack or cfg.stack == ''
+        cfg.stack = cfg.stack.split(' ')
 
-    if cfg.base == 'default' or cfg.base == 'express'
+    if not cfg.base or cfg.base == 'default' or cfg.base == 'express'
         express = require('express')
+        if plugin(script,'session')
+            session = require('express-session')
         if plugin(script,'stylus')
             stylus = require('stylus')
+            nib = require('nib')
         if plugin(script,'pug')
             pug = require('pug')
         http = require('http')
         bodyParser = require('body-parser')
-
+        methodOverride = require('method-override')
+        
         app = express()
-
-        # TODO: method override?
+        
+        env = process.env.NODE_ENV || 'development'
+        if process.env.NODE_ENV=='development'
+            app.locals.pretty = true
+        
+        app.use(methodOverride())
         app.use(bodyParser.urlencoded({ extended: true }))
         app.use(bodyParser.json())
-
-        # TODO: session
+        if cfg.store
+            session['store'] = cfg.store
+        if cfg.secret
+            session['secret'] = cfg.secret
+        if plugin(script,'session')
+            sessionConfig =
+                resave: false
+                saveUninitialized: true
+            app.use session sessionConfig
 
         if plugin(script,'pug')
             app.set 'view engine', 'pug'
@@ -54,6 +89,7 @@ if process.env.SINGLEFILE # launching wrapper
             compile = (str, p) ->
                 return stylus(str)
                     .set('filename', p)
+                    .use(nib())
             app.use stylus.middleware do
                 src: __dirname + '/views/'
                 dest: __dirname + '/public/'
@@ -64,9 +100,18 @@ if process.env.SINGLEFILE # launching wrapper
 
         app.use(express.static('public'))
         app.run = (cb)->
-            httpserver = http.createServer app
-            app.listen cfg.port || 3000, ->
-                cb void, httpserver
+            httpServer = http.createServer app
+            
+            if env=='development'
+                httpServer.on 'uncaughtException', (req,res,route,err) ->
+                    console.log err
+                    if !res.headersSent
+                        return res.send(500, {ok:false})
+                    res.write '\n'
+                    res.end()
+            
+            httpServer.listen cfg.port || 3000, ->
+                cb void, httpServer
     else
         app = {}
     return script.server(app)
@@ -111,7 +156,7 @@ script = require(fn)
 
 # if they're missing, inject singlefile wrapper dependencies into script's package.json
 inject_libs = (pkg)->
-    libs = [ 'express', 'pug', 'stylus', 'grunt-browserify', 'body-parser' ]
+    libs = client_libs.slice()
     if ext != 'js'
         if ext in Object.keys(interpreters)
             libs = [interpreters[ext]].concat(libs)
@@ -120,6 +165,15 @@ inject_libs = (pkg)->
     for lib in libs
         if not (lib in Object.keys(pkg.dependencies))
             pkg.dependencies[lib] = '*'
+    if script.config.stack
+        script.config.stack = script.config.stack.split(' ')
+    else
+        script.config.stack = ['pug', 'stylus']
+    plugin_lib_keys = Object.keys(plugin_libs)
+    for stacklib in script.config.stack
+        if stacklib in plugin_lib_keys
+            for stackpkg in plugin_libs[stacklib]
+                pkg.dependencies[stackpkg] = '*'
     return pkg
 
 run_npm = (script,cb)->
@@ -196,8 +250,7 @@ run_grunt = (script,cb)->
                 return cb err
             
             grunt_cmd = path.join(path.dirname(argv[2]),'node_modules','grunt','bin','grunt')
-            exists <- fs.exists grunt_cmd
-            if not exists
+            if not fs.existsSync grunt_cmd
                 grunt_cmd = 'grunt'
             
             child_process.exec grunt_cmd, {cwd:scriptdir} (err, stdout, stderr)->
@@ -254,7 +307,7 @@ if err
 
 
 # local babel?
-exists <- fs.exists path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js')
+exists = fs.existsSync path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js')
 
 if exists
     # use local babel
@@ -282,7 +335,8 @@ err <- fs.unlink path.join(scriptdir,'client-pre-babel.js')
 #    return cb void
 
 #app = void
-cfg = script.config
+#if cfg.stack or cfg.stack == ''
+#    cfg.stack = cfg.stack.split(' ')
 #if cfg
 #    if cfg.base=='default'
 #        express = require('express')
@@ -317,7 +371,7 @@ env =
 #console.log 'lsc -c ' + process.argv[2]
 
 wrapperls = path.join(scriptdir,'wrapper.ls')
-exists <- fs.exists wrapperls
+exists = fs.existsSync wrapperls
 if exists
     console.log 'cannot build, wrapper.ls would be replaced'
     processs.exit(1)
