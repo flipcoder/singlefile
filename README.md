@@ -112,12 +112,12 @@ Feel free to let me know if you find this useful or have any questions.  I am op
 - [x] Basic functionality (see basic example)
 - [x] Add browserify to grunt steps to get client-side require()
 - [ ] Allow setting path for custom compilers somehow (must be // or # comment on first/second line)
-- [ ] Selectable base for minimal boilerplate
+- [x] Selectable base for minimal boilerplate
 - [ ] Expand default express base (SSL, etc.)
 - [ ] Support other CSS alternatives
-- [ ] React support and example
+- [x] React support and example
 - [ ] Different view engines in addition to pug (could even make it detectable)
 - [ ] Live reloading when script file is modified
-- [ ] Generated folder paths inside of views and public (grunt nodemon)
-- [ ] Native app bases
+- [ ] Generated folder paths inside of views and public
+- [ ] Native app base
 

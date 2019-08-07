@@ -360,22 +360,9 @@ try
 for staticfile, content of script.pub
     fs.writeFileSync path.join(scriptdir,'public', staticfile), content, {'flag':'w'}
 
-# TODO: instead of requiring, should:
-#   (if not in script dir) compile and copy singlefile.js to project and re-run from script dir using script's node_modules
-#   (if in script dir) require and run
-
 env =
     #NODE_PATH: path.join(scriptdir,'node_modules')
     SINGLEFILE: ext
-#console.log env
-# TODO quote fn
-#e = process.argv.join(' ')+' -r'
-#console.log e
-# "cwd":scriptdir, 
-# TODO: pipe output
-
-# compile self and copy in
-#console.log 'lsc -c ' + process.argv[0]
 
 wrapperls = path.join(scriptdir,'wrapper.ls')
 exists = fs.existsSync wrapperls
@@ -391,24 +378,7 @@ err <- fs.unlink path.join(scriptdir,'wrapper.ls')
 #singlefilejs_path = path
 
 p = ['node',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
-#p = Object.assign argv.slice(0)
-#console.log typeof p[p.length-1]
-#if typeof p[p.length-1] == 'undefined'
-#p.pop()
-
-# singlefile.ls -> singlefile.js
-#p[p.length-2] = repchar(p[p.length-2], p[p.length-2].length-2, 'j')
-#p[p.length-2] = path.join(scriptdir,'wrapper.js')
-#p.unshift(argv[argv.length-1])
-#p.unshift(path.join(scriptdir,'wrapper.js'))
-#p[p.length-1] = JSON.stringify(p[p.length-1])
-# remove lsc
-#console.log p
-#p.splice(0,1)
-#console.log p
-#p.unshift('node')
 ps = p.join(' ')
-#console.log ps
 
 #child = child_process.exec ps, {env:env}
 child = child_process.exec ps, {env:env}
