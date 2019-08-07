@@ -24,16 +24,17 @@ interpreters =
 # client side libs to inject into script's generated package.json
 client_libs = [
     'express',
+    'grunt',
     'grunt-browserify',
     'body-parser',
     'method-override',
 ]
 
-plugin_libs = [
+plugin_libs = {
     'pug': ['pug'],
     'stylus': ['stylus', 'nib'],
     'session': ['express-session']
-]
+}
 
 if process.env.SINGLEFILE # launching wrapper
     # include interpreter since we're generating singlefile.js and we need script require()s
@@ -118,11 +119,16 @@ if process.env.SINGLEFILE # launching wrapper
 
 child_process = require('child_process')
 
-if argv.length <= 3
+if argv[0].endsWith 'node'
+    argv.shift()
+if argv[0].endsWith 'lsc'
+    argv.shift()
+
+if argv.length <= 1
     console.log 'singlefile <file>'
     return
 
-fn = path.resolve(argv[3])
+fn = path.resolve(argv[1])
 cwd = process.cwd()
 
 # TODO: check first/second line of script for compiler
@@ -132,7 +138,7 @@ compilers =
     coffee: 'coffee -c' # coffeescript
     ls: 'lsc -c' # livescript
 
-scriptfn = path.basename(argv[3])
+scriptfn = path.basename(argv[1])
 #console.log scriptfn
 pp = path.parse(fn)
 scriptdir = path.dirname(fn)
@@ -170,6 +176,7 @@ inject_libs = (pkg)->
     else
         script.config.stack = ['pug', 'stylus']
     plugin_lib_keys = Object.keys(plugin_libs)
+    #console.log plugin_libs
     for stacklib in script.config.stack
         if stacklib in plugin_lib_keys
             for stackpkg in plugin_libs[stacklib]
@@ -249,7 +256,7 @@ run_grunt = (script,cb)->
                 console.log 'gruntfile.js write failed'
                 return cb err
             
-            grunt_cmd = path.join(path.dirname(argv[2]),'node_modules','grunt','bin','grunt')
+            grunt_cmd = path.join(path.dirname(argv[0]),'node_modules','grunt','bin','grunt')
             if not fs.existsSync grunt_cmd
                 grunt_cmd = 'grunt'
             
@@ -301,17 +308,17 @@ err <- fs.writeFile path.join(scriptdir,'client-pre-babel.js'), client_code, {'f
 if err
     console.log 'could not write client.js file'
 
-#console.log path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
+#console.log path.join(path.dirname(argv[0]),'node_modules','babel-cli','bin','babel.js') +
 #    '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --outname ' + path.join(scriptdir,'client-pre-browserify.js')
 
 
 
 # local babel?
-exists = fs.existsSync path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js')
+exists = fs.existsSync path.join(path.dirname(argv[0]),'node_modules','babel-cli','bin','babel.js')
 
 if exists
     # use local babel
-    child_process.execSync path.join(path.dirname(argv[2]),'node_modules','babel-cli','bin','babel.js') +
+    child_process.execSync path.join(path.dirname(argv[0]),'node_modules','babel-cli','bin','babel.js') +
         '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --out-file ' + path.join(scriptdir,'client-pre-browserify.js')
 else
     # use global babel
@@ -368,19 +375,19 @@ env =
 # TODO: pipe output
 
 # compile self and copy in
-#console.log 'lsc -c ' + process.argv[2]
+#console.log 'lsc -c ' + process.argv[0]
 
 wrapperls = path.join(scriptdir,'wrapper.ls')
 exists = fs.existsSync wrapperls
 if exists
     console.log 'cannot build, wrapper.ls would be replaced'
-    processs.exit(1)
-err <- fs.copyFile argv[2], path.join(scriptdir,'wrapper.ls')
+    process.exit(1)
+err <- fs.copyFile argv[0], path.join(scriptdir,'wrapper.ls')
 child_process.execSync 'lsc -c ' + path.join(scriptdir,'wrapper.ls')
 err <- fs.unlink path.join(scriptdir,'wrapper.ls')
 #repchar = (s, idx, r)-> s.substr(0, idx) + r + s.substr(idx + r.length)
-#singlefile = argv[2]
-#singlefilejs = repchar(argv[2],argv[2].length-2,'j')
+#singlefile = argv[0]
+#singlefilejs = repchar(argv[0],argv[0].length-2,'j')
 #singlefilejs_path = path
 
 p = []
@@ -394,12 +401,14 @@ p = Object.assign process.argv.slice(0)
 p[p.length-2] = path.join(scriptdir,'wrapper.js')
 #p[p.length-1] = JSON.stringify(p[p.length-1])
 # remove lsc
-p.splice(1,1)
+#console.log p
+p.splice(0,1)
+#console.log p
+p.unshift('node')
 ps = p.join(' ')
 #console.log ps
 
 #child = child_process.exec ps, {env:env}
-#console.log ps
 child = child_process.exec ps, {env:env}
 child.stdout.on 'data', (data) ->
     console.log data
