@@ -390,21 +390,23 @@ err <- fs.unlink path.join(scriptdir,'wrapper.ls')
 #singlefilejs = repchar(argv[0],argv[0].length-2,'j')
 #singlefilejs_path = path
 
-p = []
-p = Object.assign process.argv.slice(0)
+p = ['node',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
+#p = Object.assign argv.slice(0)
 #console.log typeof p[p.length-1]
 #if typeof p[p.length-1] == 'undefined'
 #p.pop()
 
 # singlefile.ls -> singlefile.js
 #p[p.length-2] = repchar(p[p.length-2], p[p.length-2].length-2, 'j')
-p[p.length-2] = path.join(scriptdir,'wrapper.js')
+#p[p.length-2] = path.join(scriptdir,'wrapper.js')
+#p.unshift(argv[argv.length-1])
+#p.unshift(path.join(scriptdir,'wrapper.js'))
 #p[p.length-1] = JSON.stringify(p[p.length-1])
 # remove lsc
 #console.log p
-p.splice(0,1)
+#p.splice(0,1)
 #console.log p
-p.unshift('node')
+#p.unshift('node')
 ps = p.join(' ')
 #console.log ps
 
