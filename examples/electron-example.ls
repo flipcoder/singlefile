@@ -1,18 +1,10 @@
 #!/usr/bin/singlefile
 
 export config =
-    port: 3000
-    base: 'minimal'
-    launcher: 'electron'
+    base: 'electron'
 
 export npm =
     name: 'electron-example'
-    main: 'wrapper.js'
-    scripts:
-        'start': 'electron .'
-    dependencies:
-        electron: '*'
-        pug: '*'
 
 export views =
     'index.pug': '''
@@ -24,17 +16,14 @@ export views =
             p Hello World!
     '''
 
-export client = ->
-    console.log 'client'
+export server = (electron)->
 
-export server = ->
-
-    electron = require('electron')
     pug = require('pug')
-    app = electron.app
-    BrowserWindow = electron.BrowserWindow
     url = require('url')
     path = require('path')
+
+    app = electron.app
+    BrowserWindow = electron.BrowserWindow
 
     win = void
 

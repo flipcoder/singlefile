@@ -38,6 +38,7 @@ client_libs = [
 plugin_libs = {
     'pug': ['pug'],
     'stylus': ['stylus', 'nib'],
+    'electron': ['electron']
     'session': ['express-session']
 }
 
@@ -118,6 +119,8 @@ if process.env.SINGLEFILE # launching wrapper
             
             httpServer.listen cfg.port || 3000, ->
                 cb void, httpServer
+    else if cfg.base == 'electron'
+        app = require('electron')
     else
         app = {}
     return script.server(app)
@@ -166,6 +169,8 @@ if ext in Object.keys(compilers)
 # check if script dir
 #console.log fn
 script = require(fn)
+if !script.config
+    script.config = {}
 
 # if they're missing, inject singlefile wrapper dependencies into script's package.json
 inject_libs = (pkg)->
@@ -178,10 +183,12 @@ inject_libs = (pkg)->
     for lib in libs
         if not (lib in Object.keys(pkg.dependencies))
             pkg.dependencies[lib] = '*'
-    if !!script.config.stack
+
+    if script.config.stack
         script.config.stack = script.config.stack.split(' ')
     else
         script.config.stack = ['pug', 'stylus']
+
     plugin_lib_keys = Object.keys(plugin_libs)
     #console.log plugin_libs
     for stacklib in script.config.stack
@@ -278,6 +285,20 @@ run_grunt = (script,cb)->
         return
     else
         return cb void
+
+# electron base
+if script.config.base == 'electron'
+    script.config.stack = 'pug stylus electron'
+    pak = void
+    if script.npm
+        pak = script.npm
+    else if script.yarn
+        pak = script.yarn
+    if pak
+        pak.main = 'wrapper.js'
+        if !pak.scripts
+            pak.scripts = {}
+        pak.scripts['start'] = 'electron .'
 
 err <- run_yarn script
 if err
@@ -387,7 +408,7 @@ err <- fs.unlink path.join(scriptdir,'wrapper.ls')
 #singlefilejs = repchar(argv[0],argv[0].length-2,'j')
 #singlefilejs_path = path
 
-if script.config.launcher == 'electron'
+if script.config.base == 'electron' or script.config.launcher == 'electron'
     #console.log 'electron'
     #p = ['electron',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
     #child_process.exec('electron wrapper.js '+argv[argv.length-1]).unref()
