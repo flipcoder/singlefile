@@ -3,13 +3,14 @@
 argv = []
 argv = Object.assign argv, process.argv.slice(0)
 
+_ = require('lodash')
 fs = require('fs')
 #async = require('async')
 path = require('path')
 
 plugin = (script, name)->
-    if script.config
-        if script.config.stack
+    if !!script.config
+        if !!script.config.stack
             return name in script.config.stack
         else
             if name in ['pug','stylus'] # defaults
@@ -20,6 +21,10 @@ interpreters =
     #js: 'node' # javascript
     coffee: 'coffeescript'
     ls: 'livescript'
+
+launchers =
+    node: 'node'
+    electron: 'electron'
 
 # client side libs to inject into script's generated package.json
 client_libs = [
@@ -42,11 +47,11 @@ if process.env.SINGLEFILE # launching wrapper
     interpreter = void
     if process.env.SINGLEFILE != 'js'
         interpreter = require(interpreters[process.env.SINGLEFILE])
-    fn = path.resolve(argv[2])
+    fn = path.resolve(process.env.SINGLEFILE_SCRIPT)
     scriptdir = path.dirname(fn)
     script = require(fn)
     cfg = script.config
-    if cfg.stack or cfg.stack == ''
+    if !!cfg.stack or cfg.stack == ''
         cfg.stack = cfg.stack.split(' ')
 
     if not cfg.base or cfg.base == 'default' or cfg.base == 'express'
@@ -119,6 +124,8 @@ if process.env.SINGLEFILE # launching wrapper
 
 child_process = require('child_process')
 
+#if argv[0].endsWith 'electron'
+#    argv.shift()
 if argv[0].endsWith 'node'
     argv.shift()
 if argv[0].endsWith 'lsc'
@@ -171,7 +178,7 @@ inject_libs = (pkg)->
     for lib in libs
         if not (lib in Object.keys(pkg.dependencies))
             pkg.dependencies[lib] = '*'
-    if script.config.stack
+    if !!script.config.stack
         script.config.stack = script.config.stack.split(' ')
     else
         script.config.stack = ['pug', 'stylus']
@@ -363,6 +370,9 @@ for staticfile, content of script.pub
 env =
     #NODE_PATH: path.join(scriptdir,'node_modules')
     SINGLEFILE: ext
+    SINGLEFILE_SCRIPT: argv[argv.length-1]
+
+_.extend env, process.env
 
 wrapperls = path.join(scriptdir,'wrapper.ls')
 exists = fs.existsSync wrapperls
@@ -377,15 +387,25 @@ err <- fs.unlink path.join(scriptdir,'wrapper.ls')
 #singlefilejs = repchar(argv[0],argv[0].length-2,'j')
 #singlefilejs_path = path
 
-p = ['node',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
+if script.config.launcher == 'electron'
+    #console.log 'electron'
+    #p = ['electron',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
+    #child_process.exec('electron wrapper.js '+argv[argv.length-1]).unref()
+    #process.exit()
+    #console.log argv[argv.length-1]
+    p = ['electron',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
+else
+    p = ['node',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
 ps = p.join(' ')
 
 #child = child_process.exec ps, {env:env}
-child = child_process.exec ps, {env:env}
-child.stdout.on 'data', (data) ->
-    console.log data
-child.stderr.on 'data', (data) ->
-    console.log data
+child = child_process.execSync ps, {env:env}
+#child.stdout.on 'data', (data) ->
+#    console.log data
+#child.stderr.on 'data', (data) ->
+#    console.log data
+
+#child.unref()
 
 #console.log err, out
 
