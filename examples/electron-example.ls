@@ -4,7 +4,6 @@ export config =
     port: 3000
     base: 'minimal'
     launcher: 'electron'
-    stack: ''
 
 export npm =
     name: 'electron-example'
@@ -13,6 +12,7 @@ export npm =
         'start': 'electron .'
     dependencies:
         electron: '*'
+        pug: '*'
 
 export views =
     'index.pug': '''
@@ -30,7 +30,7 @@ export client = ->
 export server = ->
 
     electron = require('electron')
-    #app = electron.remote.app
+    pug = require('pug')
     app = electron.app
     BrowserWindow = electron.BrowserWindow
     url = require('url')
@@ -38,15 +38,12 @@ export server = ->
 
     win = void
 
+    html = pug.render views['index.pug']
+    html = 'data:text/html;charset=UTF-8,' + encodeURIComponent(html)
+
     createWindow = ->
-       win = new BrowserWindow({width: 800, height: 600})
-           
-       #win.loadURL url.format do
-       #   pathname: path.join(__dirname, 'index.pug'),
-       #   protocol: 'file:',
-       #   slashes: true
-       win.loadFile 'index.pug'
+        win = new BrowserWindow({width: 800, height: 600})
+        win.loadURL html
 
     app.on 'ready', createWindow
-    #app.whenReady().then createWindow
 
