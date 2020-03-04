@@ -48,7 +48,7 @@ if process.env.SINGLEFILE # launching wrapper
 
     interpreter = void
     if process.env.SINGLEFILE == 'coffee'
-        require('coffee-script').register()
+        require('coffeescript').register()
     else if process.env.SINGLEFILE == 'ts'
         require('typescript-require')
     else if process.env.SINGLEFILE != 'js'
@@ -177,7 +177,7 @@ if ext in Object.keys(compilers)
 # check if script dir
 #console.log fn
 if ext == 'coffee'
-    require('coffee-script').register()
+    require('coffeescript').register()
 else if ext == 'ts'
     require('typescript-require')
 script = require(fn)
