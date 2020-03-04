@@ -8,3 +8,5 @@ examples/package.json
 examples/package-lock.json
 examples/basic-example.js
 examples/electron-example.js
+examples/tmp/
+examples/coffee-example.js

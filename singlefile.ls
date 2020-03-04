@@ -19,6 +19,7 @@ plugin = (script, name)->
 
 interpreters =
     #js: 'node' # javascript
+    ts: 'ts-node' # typescript
     coffee: 'coffeescript'
     ls: 'livescript'
 
@@ -46,13 +47,18 @@ if process.env.SINGLEFILE # launching wrapper
     # include interpreter since we're generating singlefile.js and we need script require()s
 
     interpreter = void
-    if process.env.SINGLEFILE != 'js'
+    if process.env.SINGLEFILE == 'coffee'
+        require('coffee-script').register()
+    else if process.env.SINGLEFILE == 'ts'
+        require('typescript-require')
+    else if process.env.SINGLEFILE != 'js'
         interpreter = require(interpreters[process.env.SINGLEFILE])
+
     fn = path.resolve(process.env.SINGLEFILE_SCRIPT)
     scriptdir = path.dirname(fn)
     script = require(fn)
     cfg = script.config
-    if !!cfg.stack or cfg.stack == ''
+    if cfg.stack or cfg.stack == ''
         cfg.stack = cfg.stack.split(' ')
 
     if not cfg.base or cfg.base == 'default' or cfg.base == 'express'
@@ -133,6 +139,8 @@ if argv[0].endsWith 'node'
     argv.shift()
 if argv[0].endsWith 'lsc'
     argv.shift()
+if argv[0].endsWith 'coffee'
+    argv.shift()
 
 if argv.length <= 1
     console.log 'singlefile <file>'
@@ -168,6 +176,10 @@ if ext in Object.keys(compilers)
 
 # check if script dir
 #console.log fn
+if ext == 'coffee'
+    require('coffee-script').register()
+else if ext == 'ts'
+    require('typescript-require')
 script = require(fn)
 if !script.config
     script.config = {}
@@ -377,16 +389,18 @@ err <- fs.unlink path.join(scriptdir,'client-pre-babel.js')
 #        express = require('express')
 
 # generate views/templates dir
+dedent= require('dentist').dedent
+
 try
     fs.mkdirSync path.join(scriptdir,'views')
 for template, content of script.views
-    fs.writeFileSync path.join(scriptdir,'views',template), content, {'flag':'w'}
+    fs.writeFileSync path.join(scriptdir,'views',template), dedent(content), {'flag':'w'}
 
 # generate static/public dir
 try
     fs.mkdirSync path.join(scriptdir,'public')
 for staticfile, content of script.pub
-    fs.writeFileSync path.join(scriptdir,'public', staticfile), content, {'flag':'w'}
+    fs.writeFileSync path.join(scriptdir,'public', staticfile), dedent(content), {'flag':'w'}
 
 env =
     #NODE_PATH: path.join(scriptdir,'node_modules')
@@ -408,25 +422,27 @@ err <- fs.unlink path.join(scriptdir,'wrapper.ls')
 #singlefilejs = repchar(argv[0],argv[0].length-2,'j')
 #singlefilejs_path = path
 
-if script.config.base == 'electron' or script.config.launcher == 'electron'
+launcher = script.config.launcher || 'node'
+
+if script.config.base == 'electron' or launcher == 'electron'
+    launcher = 'electron'
     #console.log 'electron'
     #p = ['electron',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
     #child_process.exec('electron wrapper.js '+argv[argv.length-1]).unref()
     #process.exit()
     #console.log argv[argv.length-1]
-    p = ['electron',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
+    p = [launcher,path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
 else
-    p = ['node',path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
+    p = [launcher,path.join(scriptdir,'wrapper.js'),argv[argv.length-1]]
 ps = p.join(' ')
 
 #child = child_process.exec ps, {env:env}
-child = child_process.execSync ps, {env:env}
-#child.stdout.on 'data', (data) ->
-#    console.log data
-#child.stderr.on 'data', (data) ->
-#    console.log data
-
-#child.unref()
-
-#console.log err, out
+if launcher=='electron'
+    child = child_process.execSync ps, {env:env}
+else
+    child = child_process.exec ps, {env:env}
+    child.stdout.on 'data', (data) ->
+        console.log data
+    child.stderr.on 'data', (data) ->
+        console.log data
 

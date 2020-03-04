@@ -1,13 +1,17 @@
 # singlefile
 
-This script allows you to create web apps using a single source file, where you create and run your app 
-with client, server, template, and style code embedded in just one file.  This is great for small
-projects and demos.
+Create and run web apps using a single source file. 
+Client, server, template/markup, and style code is embedded in just one file
+This is great for prototyping small projects and demos.
 
 I have plans to make this very flexible, such as having it work with different languages, stacks, and base configurations.
 
-Scripts support a shebang line, so you'll be able to simply execute the file and have all the necessary
+Scripts support a shebang line (except in the case of TypeScript), so you'll be able to simply execute the file and have all the necessary
 temporary files generated when you run it.
+
+**Currently supports**: JS, ES6, TypeScript, CoffeeScript, LiveScript
+
+**Examples Included**: React.js, Electron
 
 # Setup
 
@@ -27,7 +31,7 @@ Now visit `localhost:3000` in a browser to see it in action.
 
 # Usage
 
-Create one file in its own folder.  You can use either javascript or livescript (coffeescript support is still in the works).
+Create one file in its own folder.  This example will use livescript.
 
 First, put a singlefile shebang line.  This allows file execution on Linux and Mac:
 
@@ -114,10 +118,8 @@ Feel free to let me know if you find this useful or have any questions.  I am op
 - [ ] Allow setting path for custom compilers somehow (must be // or # comment on first/second line)
 - [x] Selectable base for minimal boilerplate
 - [ ] Expand default express base (SSL, etc.)
-- [ ] Support other CSS alternatives
 - [x] React support and example
-- [ ] Different view engines in addition to pug (could even make it detectable)
 - [ ] Live reloading when script file is modified
-- [ ] Generated folder paths inside of views and public
-- [ ] Native app base
+- [ ] Recursive subdirectories inside of views and public
+- [x] Electron support
 
