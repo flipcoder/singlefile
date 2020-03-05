@@ -1,33 +1,32 @@
 exports.config = {
-  port: 3000,
-  base: 'default'
+    port: 3000,
+    base: 'default'
 };
 exports.npm = {
-  name: 'singlefile-es6-example'
+    name: 'singlefile-es6-example'
 };
 
 exports.views = { 'index.pug':`
-doctype html
-html(lang='en')
-  head
-    script(src='client.js')
-  body
-    p Hello World!
+    doctype html
+    html(lang='en')
+        head
+            script(src='client.js')
+        body
+            p Hello World!
 `};
 
-exports.client = () => {
-  class ES6Class {
-    constructor() {
-      console.log('client');
+exports.client = async () => {
+    class ES6Class {
+        constructor() {
+            console.log('client');
+        }
     }
-  }
-  new ES6Class();
+    new ES6Class();
 };
-exports.server = (app) => {
-  app.get('/', function(req, res){
-    return res.render('index.pug');
-  });
-  return app.run(function(){
-    return console.log('server running');
-  });
+exports.server = async (app) => {
+    app.get('/', function(req, res){
+        res.render('index.pug');
+    });
+    await app.run();
+    console.log('server running');
 };

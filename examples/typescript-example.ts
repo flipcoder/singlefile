@@ -22,13 +22,13 @@ export function client() {
     console.log('client');
 };
 
-export function server(app) {
+export async function server(app) {
     app.get('/', function(req,res) {
         res.render('index.pug');
     });
 
-    app.run(() => {
-        console.log('server running');
-    });
+    await app.run();
+    
+    console.log('server running');
 };
 

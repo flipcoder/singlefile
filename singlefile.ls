@@ -5,6 +5,7 @@ argv = Object.assign argv, process.argv.slice(0)
 
 _ = require('lodash')
 fs = require('fs')
+{promisify} = require('util')
 #async = require('async')
 path = require('path')
 
@@ -112,7 +113,7 @@ if process.env.SINGLEFILE # launching wrapper
                 compile: compile
 
         app.use(express.static('public'))
-        app.run = (cb)->
+        app.run = (cb)->>
             httpServer = http.createServer app
             
             if env=='development'
@@ -129,7 +130,12 @@ if process.env.SINGLEFILE # launching wrapper
         app = require('electron')
     else
         app = {}
-    return script.server(app)
+    if script.server.constructor.name == 'AsyncFunction'
+        app.run = promisify(app.run)
+        script.server(app)
+    else
+        script.server(app)
+    return
 
 child_process = require('child_process')
 
