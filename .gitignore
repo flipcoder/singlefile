@@ -10,3 +10,4 @@ examples/basic-example.js
 examples/electron-example.js
 examples/tmp/
 examples/coffee-example.js
+examples/svelte-example.js

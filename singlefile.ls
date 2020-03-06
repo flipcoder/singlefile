@@ -40,8 +40,12 @@ client_libs = [
 plugin_libs = {
     'pug': ['pug'],
     'stylus': ['stylus', 'nib'],
-    'electron': ['electron']
-    'session': ['express-session']
+    'electron': ['electron'],
+    'session': ['express-session'],
+    'svelte': [
+        'svelte', 'rollup', 'rollup-plugin-commonjs','rollup-plugin-svelte',
+        'rollup-plugin-node-resolve', 'svelte-preprocess'
+    ]
 }
 
 if process.env.SINGLEFILE # launching wrapper
@@ -113,7 +117,7 @@ if process.env.SINGLEFILE # launching wrapper
                 compile: compile
 
         app.use(express.static('public'))
-        app.run = (cb)->>
+        app.run = (cb)->
             httpServer = http.createServer app
             
             if env=='development'
@@ -128,6 +132,16 @@ if process.env.SINGLEFILE # launching wrapper
                 cb void, httpServer
     else if cfg.base == 'electron'
         app = require('electron')
+    else if cfg.base == 'svelte'
+        express = require('express')
+        pug = require('pug')
+        app = express()
+        app.set('view engine', 'pug')
+        app.use(express.static('public'))
+        app.run = (cb)->
+            err <- app.listen cfg.port || 3000
+            console.log err
+            return cb err
     else
         app = {}
     if script.server.constructor.name == 'AsyncFunction'
@@ -208,11 +222,13 @@ inject_libs = (pkg)->
         script.config.stack = ['pug', 'stylus']
 
     plugin_lib_keys = Object.keys(plugin_libs)
-    #console.log plugin_libs
     for stacklib in script.config.stack
         if stacklib in plugin_lib_keys
             for stackpkg in plugin_libs[stacklib]
-                pkg.dependencies[stackpkg] = '*'
+                if stackpkg=='coffeescript' # TEMP: use a pref version array
+                    pkg.dependencies[stackpkg] = '2.*'
+                else
+                    pkg.dependencies[stackpkg] = '*'
     return pkg
 
 run_npm = (script,cb)->
@@ -260,6 +276,10 @@ run_yarn = (script,cb)->
 
 run_grunt = (script,cb)->
     # TODO: inject browserify for client code
+    if script.config.base=='svelte'
+        fs.copyFile path.join(scriptdir,'client-pre-browserify.js'), path.join(scriptdir,'public/client.js'), (err)->
+            return cb err
+        return
     if not script.grunt
         script.grunt = {}
         script.grunt.config =
@@ -269,6 +289,7 @@ run_grunt = (script,cb)->
                     src: ['client-pre-browserify.js'],
                     dest: 'public/client.js'
         script.grunt.load = ['grunt-browserify']
+        #script.grunt.register = [] # TEMP
         script.grunt.register = ['browserify']
 
     if script.grunt
@@ -303,6 +324,10 @@ run_grunt = (script,cb)->
         return
     else
         return cb void
+
+# svelte base
+if script.config.base == 'svelte'
+    script.config.stack = 'pug stylus svelte'
 
 # electron base
 if script.config.base == 'electron'
@@ -346,6 +371,14 @@ if script.client?
         if return_line.indexOf('return ') >= 0
             return_line = return_line.substring(return_line.indexOf('return ')+'return '.length)
         client_code = client_code + '\n' + return_line
+
+        # dirty export hack
+        if script.config.base == 'svelte'
+            client_code = client_code.replace('this.','    export let ')
+        #client_code = client_code + '\nexport let _singlefile_exports = this;' + return_line
+        
+        #console.log client_code
+        
         # TODO: cut 1 level of indentation
 else
     client_code = ''
@@ -356,8 +389,6 @@ if err
 
 #console.log path.join(path.dirname(argv[0]),'node_modules','babel-cli','bin','babel.js') +
 #    '  ' + path.join(scriptdir,'client-pre-babel.js') + ' --outname ' + path.join(scriptdir,'client-pre-browserify.js')
-
-
 
 # local babel?
 exists = fs.existsSync path.join(path.dirname(argv[0]),'node_modules','babel-cli','bin','babel.js')
@@ -381,6 +412,7 @@ if err
     process.exit(1)
 
 err <- fs.unlink path.join(scriptdir,'client-pre-browserify.js')
+#err <- fs.copyFile path.join(scriptdir,'client-pre-browserify'), path.join(scriptdir,'public/client.js') # temp
 err <- fs.unlink path.join(scriptdir,'client-pre-babel.js')
 
 #err, template <- async.eachLimit Object.keys(template), 1, (template,cb)->
@@ -397,6 +429,37 @@ err <- fs.unlink path.join(scriptdir,'client-pre-babel.js')
 # generate views/templates dir
 dedent= require('dentist').dedent
 
+if not script.views
+    script.views = {}
+if not script.pub
+    script.pub = {}
+
+if script.config.base == 'svelte'
+    if not ('index.pug' in script.views)
+        # default index
+        script.views['index.pug'] = '''
+            head
+                script(defer src='bundle.js')
+            body
+        '''
+    if not ('App.svelte' in script.pub)
+        script.pub['App.svelte'] = '''
+            <script src="client.js"></script>
+            <style src="main.styl"></style>
+            <template lang="pug" src="main.pug"></template>
+        '''
+    if not ('main.js' in script.pub)
+        script.pub['main.js'] = '''
+            import App from './App.svelte';
+
+            const app = new App({
+                target: document.body,
+                props: {}
+            });
+
+            export default app;
+        '''
+
 try
     fs.mkdirSync path.join(scriptdir,'views')
 for template, content of script.views
@@ -412,6 +475,32 @@ env =
     #NODE_PATH: path.join(scriptdir,'node_modules')
     SINGLEFILE: ext
     SINGLEFILE_SCRIPT: argv[argv.length-1]
+
+if script.config.base=='svelte'
+    fs.writeFileSync path.join(scriptdir, 'rollup.config.js'), '''
+        import svelte from 'rollup-plugin-svelte';
+        import sveltePreprocess from 'svelte-preprocess'
+        import nodeResolve from 'rollup-plugin-node-resolve';
+        import commonjs from 'rollup-plugin-commonjs';
+
+        export default {
+          input: 'public/main.js',
+          output: {
+            name: 'bundle',
+            file: 'public/bundle.js',
+            format: 'iife'
+          },
+          plugins: [
+            nodeResolve(),
+            commonjs(),
+            svelte({
+              include: "public/*.svelte",
+              preprocess: sveltePreprocess()
+            })
+          ]
+        }
+    ''', {'flag':'w'}
+    child_process.execSync 'rollup -c ' + path.join(scriptdir,'rollup.config.js')
 
 _.extend env, process.env
 

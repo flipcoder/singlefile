@@ -17,7 +17,7 @@
   "bugs": "https://github.com/flipcoder/singlefile/issues",
   "dependencies": {
     "typescript-require": "*",
-    "coffee-script": "*",
+    "coffeescript": "2.*",
     "livescript": "*",
     "babel-cli": "*",
     "grunt": "*",

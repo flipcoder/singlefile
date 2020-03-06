@@ -1,14 +1,12 @@
 #!/usr/bin/singlefile
-e = {}
 
-e.config =
-    port: 3000
+@config =
     base: 'default'
 
-e.npm =
+@npm =
     name: 'singlefile-example'
 
-e.views =
+@views =
     'index.pug': '''
         doctype html
         html(lang='en')
@@ -18,15 +16,14 @@ e.views =
             p Hello World!
     '''
 
-e.client = ->
+@client = ()->
     console.log 'client'
 
-e.server = (app)->
-    app.get '/', (req,res) ->
+@server = (app)->
+    app.get '/', (req,res)->
         res.render 'index.pug'
 
-    app.run ->
-        console.log 'server running'
-
-module.exports = e
+    await app.run()
+    
+    console.log 'server running'
 
