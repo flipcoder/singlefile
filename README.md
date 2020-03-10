@@ -11,7 +11,7 @@ temporary files generated when you run it.
 
 **Currently supports**: JS, ES6, TypeScript, CoffeeScript, LiveScript
 
-**Examples Included**: React.js, Electron, Svelte
+**Examples Included**: React.js, Electron
 
 # Setup
 
