@@ -374,7 +374,7 @@ if script.client?
 
         # dirty export hack
         if script.config.base == 'svelte'
-            client_code = client_code.replace('this.','    export let ')
+            client_code = client_code.replace('exportlet.','export let ')
         #client_code = client_code + '\nexport let _singlefile_exports = this;' + return_line
         
         #console.log client_code

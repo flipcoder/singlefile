@@ -17,8 +17,16 @@
             background-color: blue
     '''
     
+exportlet = {}
+name = null
 @client = ()->
-    @name = 'world'
+    exportlet.name
+    main = ()->
+        name = 'world'
+        cb = ()->
+            name = 'programmer'
+        setTimeout cb, 2000
+    main()
 
 @server = (app)->
     app.get '*', (req,res)->
