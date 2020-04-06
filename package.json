@@ -19,6 +19,7 @@
     "typescript-require": "*",
     "coffeescript": "2.*",
     "livescript": "*",
+    "hyperscript": "*",
     "babel-cli": "*",
     "grunt": "*",
     "dentist": "*"

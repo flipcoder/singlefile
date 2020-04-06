@@ -9,12 +9,14 @@ fs = require('fs')
 #async = require('async')
 path = require('path')
 
+defaultstack = ['default', 'pug', 'stylus']
+
 plugin = (script, name)->
     if !!script.config
         if !!script.config.stack
             return name in script.config.stack
         else
-            if name in ['pug','stylus'] # defaults
+            if name in defaultstack
                 return true
     return false
 
@@ -38,6 +40,7 @@ client_libs = [
 ]
 
 plugin_libs = {
+    'default': ['dentist'],
     'pug': ['pug'],
     'stylus': ['stylus', 'nib'],
     'electron': ['electron'],
@@ -48,20 +51,22 @@ plugin_libs = {
     ]
 }
 
-if process.env.SINGLEFILE # launching wrapper
+if process.env.SINGLEFILE_EXT # launching wrapper
     # include interpreter since we're generating singlefile.js and we need script require()s
 
     interpreter = void
-    if process.env.SINGLEFILE == 'coffee'
+    if process.env.SINGLEFILE_EXT == 'coffee'
         require('coffeescript').register()
-    else if process.env.SINGLEFILE == 'ts'
+    else if process.env.SINGLEFILE_EXT == 'ts'
         require('typescript-require')
-    else if process.env.SINGLEFILE != 'js'
-        interpreter = require(interpreters[process.env.SINGLEFILE])
+    else if process.env.SINGLEFILE_EXT != 'js'
+        interpreter = require(interpreters[process.env.SINGLEFILE_EXT])
 
     fn = path.resolve(process.env.SINGLEFILE_SCRIPT)
     scriptdir = path.dirname(fn)
     script = require(fn)
+    if !script.config
+        script.config = {}
     cfg = script.config
     if cfg.stack or cfg.stack == ''
         cfg.stack = cfg.stack.split(' ')
@@ -144,6 +149,9 @@ if process.env.SINGLEFILE # launching wrapper
             return cb err
     else
         app = {}
+    if not script.server
+        script.server = ->
+            <- app.run()
     if script.server.constructor.name == 'AsyncFunction'
         app.run = promisify(app.run)
         script.server(app)
@@ -435,13 +443,14 @@ if not script.pub
     script.pub = {}
 
 if script.config.base == 'svelte'
-    if not ('index.pug' in script.views)
-        # default index
-        script.views['index.pug'] = '''
-            head
-                script(defer src='bundle.js')
-            body
-        '''
+    if not ('index.html' in script.pub)
+        if not ('index.pug' in script.views)
+            # default index
+            script.views['index.pug'] = '''
+                head
+                    script(defer src='bundle.js')
+                body
+            '''
     if not ('App.svelte' in script.pub)
         script.pub['App.svelte'] = '''
             <script src="client.js"></script>
@@ -462,18 +471,24 @@ if script.config.base == 'svelte'
 
 try
     fs.mkdirSync path.join(scriptdir,'views')
-for template, content of script.views
-    fs.writeFileSync path.join(scriptdir,'views',template), dedent(content), {'flag':'w'}
+for fn, content of script.views
+    if fn.toLowerCase().endsWith '.html'
+        if Array.isArray content
+            content = _.map(content, (x)-> x.outerHTML || x).join('')
+    fs.writeFileSync path.join(scriptdir,'views',fn), dedent(content), {'flag':'w'}
 
 # generate static/public dir
 try
     fs.mkdirSync path.join(scriptdir,'public')
-for staticfile, content of script.pub
-    fs.writeFileSync path.join(scriptdir,'public', staticfile), dedent(content), {'flag':'w'}
+for fn, content of script.pub
+    if fn.toLowerCase().endsWith '.html'
+        if Array.isArray content
+            content = _.map(content, (x)-> x.outerHTML || x).join('')
+    fs.writeFileSync path.join(scriptdir,'public', fn), dedent(content), {'flag':'w'}
 
 env =
     #NODE_PATH: path.join(scriptdir,'node_modules')
-    SINGLEFILE: ext
+    SINGLEFILE_EXT: ext
     SINGLEFILE_SCRIPT: argv[argv.length-1]
 
 if script.config.base=='svelte'

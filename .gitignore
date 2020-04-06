@@ -8,6 +8,8 @@ examples/package.json
 examples/package-lock.json
 examples/basic-example.js
 examples/electron-example.js
+examples/react-example.js
 examples/tmp/
 examples/coffee-example.js
+examples/rollup.config.js
 examples/svelte-example.js
