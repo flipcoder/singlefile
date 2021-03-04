@@ -9,9 +9,11 @@ I have plans to make this very flexible, such as having it work with different l
 Scripts support a shebang line (except in the case of TypeScript), so you'll be able to simply execute the file and have all the necessary
 temporary files generated when you run it.
 
-**Currently supports**: JS, ES6, TypeScript, CoffeeScript, LiveScript
+**Currently supports**: JS, ES6, CoffeeScript, LiveScript
 
 **Examples Included**: React.js, Electron
+
+**Work-in-Progress**: TypeScript, Svelte
 
 # Setup
 
